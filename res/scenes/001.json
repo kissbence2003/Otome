@@ -1,0 +1,26 @@
+[
+    {
+        "background": "valami.png",
+        "place": "Example place"
+    },
+    {
+        "passiveParticipant": "Example 1",
+        "activeParticipant": "Example 2",
+        "text": "Hi! This is a test to see if everything works properly."
+    },
+    {
+        "passiveParticipant":"Example 2",
+        "activeParticipant":"Example 1",
+        "text": "Exactly! This is only to see if everything's cool!"
+    },
+    {
+        "passiveParticipant":"Example 2",
+        "activeParticipant":"Example 1",
+        "text": "And here is some extra text for filler c:"
+    },
+    {
+        "passiveParticipant":"Example 2",
+        "activeParticipant":"Example 1",
+        "text": "Aaaaaaaaaaaaaaaaaaaaaaaaaaaand here is some extra long text, so that we can see what happens when very looooooooooong chunck are printed on the screen."
+    }
+]
