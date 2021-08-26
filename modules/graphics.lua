@@ -1,3 +1,4 @@
+animation = require "./modules/animation"
 local graphics = {}
 
 function graphics.love()
@@ -11,7 +12,10 @@ function graphics.load()
 
 end
 
-function graphics.menu()
+function graphics.background()
+
+    if not tableContains(SCREEN_STATE, "menu") and not tableContains(SCREEN_STATE, "loadFile") then return end
+
     local scale = 0.5
 
     lg.push()
@@ -26,9 +30,19 @@ function graphics.menu()
     end
 
     lg.pop()
-    
+end
+
+function graphics.menu()
     for i, button in ipairs(menuButtons.buttons) do
         local verticesScaled = {}
+
+        local animationMove = 0
+        if animation.isRunning then
+            if animation.id == 1 then
+                animationMove = WINDOW.HEIGHT * animation.timer / animation.timeLimit
+                print(max, animationMove)
+            end
+        end
 
         for i, vertex in ipairs(button.vertices) do
             if i % 2 == 1 then
@@ -38,11 +52,12 @@ function graphics.menu()
             end
         end
 
+        verticesScaled = applyAnimation(verticesScaled, animationMove)
+
         local collides = vector.collision(verticesScaled, {x = love.mouse.getX( ), y = love.mouse.getY( )})
 
-        if love.mouse.isDown( 1 ) and collides then
+        if love.mouse.isDown( 1 ) and collides and not animation.isRunning then
             button.func()
-
         end
 
         if collides then
@@ -50,13 +65,13 @@ function graphics.menu()
         else
             lg.setColor(menuButtons.color)
         end
+
         lg.polygon("fill", verticesScaled)
         lg.setColor(menuButtons.borderColor)
         lg.setLineWidth(3)
         lg.polygon("line", verticesScaled)
 
         local text = lg.newText(fonts.Itim[menuButtons.fontSize], button.text)
-        print(button.text)
 
         local origo = vector.origo(verticesScaled)
         local _, _, iconWidth, iconHeight = button.icon:getViewport( )
@@ -85,8 +100,19 @@ function graphics.menu()
     end
 end
 
-function graphics.loadfile()
+function graphics.loadFile()
+    --lg.ellipse(loadTitle, 0, 0, 0, WINDOW.WIDTH / loadTitle:getWidth(), WINDOW.WIDTH / loadTitle:getWidth())
+    local scale = WINDOW.WIDTH / loadTitle:getWidth()
+    lg.draw(loadCanvas, 0, loadTitle:getHeight() * scale / -2, 0, scale, scale)
+end
 
+function applyAnimation(t, anim)
+    for i, v in ipairs(t) do
+        if i % 2 == 0 then
+            t[i] = v + anim
+        end
+    end
+    return t
 end
 
 return graphics

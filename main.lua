@@ -3,17 +3,20 @@ json = require "./modules/json"
 --require "./modules/textbox"
 vector = require "./modules/vector"
 graphics = require "./modules/graphics"
+animation = require "./modules/animation"
 scene, convertToMoreDigits = require "./modules/scene"
 
 lg = love.graphics
 
-SCREEN_STATE = ""
+SCREEN_STATE = {}
 WINDOW = {
     EXPECTED_WIDTH = 1920,
     EXPECTED_HEIGHT = 1080,
     VERTICAL_SCALE = 1,
     HORIZONTAL_SCALE = 1
 }
+
+globals = {}
 
 characters = {}
 shaders = {
@@ -53,15 +56,25 @@ function love.load()
 end
 
 function love.update(dt)
-    if SCREEN_STATE == "love" then
+    if tableContains(SCREEN_STATE, "love") then
         loveScreenTimer = loveScreenTimer + dt
         if loveScreenTimer >= 5 then
             loading(menu, "menu")
         end
     end
+    animation.update(dt)
 end
 
 function love.draw()
+
+    graphics.background()
+
+    for i, v in pairs(SCREEN_STATE) do
+        graphics[v]()
+    end
+
+    --[[
+
     if SCREEN_STATE == "love" then
         graphics.love()
     elseif SCREEN_STATE == "load" then
@@ -72,10 +85,12 @@ function love.draw()
     elseif SCREEN_STATE == "loadfile" then
         graphics.loadfile()
     end
+
+    ]]
 end
 
 function press(x, y)
-    if SCREEN_STATE == "love" then
+    if tableContains(SCREEN_STATE, "love") then
         loading(menu, "menu")
     end
     if expressionNumber == 1 then expressionNumber = 2 else expressionNumber = 1 end
@@ -99,21 +114,25 @@ function love.resize( w, h )
     WINDOW.WIDTH, WINDOW.HEIGHT = w, h
     WINDOW.HORIZONTAL_SCALE, WINDOW.VERTICAL_SCALE = w / WINDOW.EXPECTED_WIDTH, h / WINDOW.EXPECTED_HEIGHT
 
-    if SCREEN_STATE == "menu" then menuButtons.fontSize = 40 end
+    if tableContains(SCREEN_STATE, "menu") then menuButtons.fontSize = 40 end
 end
 
-function loading(func, after)
-    SCREEN_STATE = "load"
+function loading(func, after, add)
+    if not add then
+        SCREEN_STATE = {}
+        table.insert(SCREEN_STATE, "load")
+    end
     func()
-    SCREEN_STATE = after
+    if not add then
+        SCREEN_STATE = {}
+    end
+    table.insert(SCREEN_STATE, after)
 end
 
 function lovescreen()
-
-
     fonts = { Itim = {} }
 
-    for i = 5, 60, 5 do
+    for i = 5, 100, 5 do
         fonts.Itim[i] = lg.newFont("/res/fonts/Itim-Regular.ttf", i)
     end
 
@@ -161,7 +180,9 @@ function menu()
         {1085, 436, 1389, 436, 1341, 734, 1031, 758.5},
         "Load",
         lg.newQuad(249, 0, 110, 142, menuButtons.icons:getDimensions()),
-        function() end    
+        function()
+            loading(loadFile, "loadFile", true)
+        end    
     ))
     table.insert(menuButtons.buttons, newMenuButton(
         {1419, 436, 1655, 436, 1655, 712, 1376, 734},
@@ -213,52 +234,22 @@ function newMenuButton(v, t, i, f)
     return {vertices = v, text = t, icon = i, func = f}
 end
 
---[[
-
-lg.draw(textbox)
-lg.setFont(font)
-lg.setColor(1, 1, 1, 1)
-lg.print("Retek Sanyi életem szerelme <3", 8, 60)
-lg.print("Retek Sanyi életem szerelme <3", 12, 60)
-lg.print("Retek Sanyi életem szerelme <3", 10, 58)
-lg.print("Retek Sanyi életem szerelme <3", 10, 62)
-lg.setColor(0, 0, 0, 1)
-lg.print("Retek Sanyi életem szerelme <3", 10, 60)
-lg.setColor(1, 1, 1, 1)
-
-]]
-
---[[
-    textbox = lg.newImage("/res/images/textbox.png")
-    
-    characters.example = {}
-    local _ = lg.newImage("/res/images/examplechar.png")
-    characters.example[1] = lg.newCanvas(_:getWidth(), _:getHeight())
-    lg.setCanvas(characters.example[1])
-        lg.clear()
-        --lg.setColor(0, 0, 0)
-        --lg.rectangle("fill", 0, 0, _:getWidth(), _:getHeight())
-        --lg.setColor(1, 1, 1)
-        lg.draw(_)
-        lg.draw(lg.newImage("/res/images/exampleexpression1.png"), 611, 387)
+function loadFile()
+    loadTitle = lg.newImage("/res/images/ovalis.png")
+    loadCanvas = lg.newCanvas(loadTitle:getWidth(), loadTitle:getHeight())
+    lg.setCanvas(loadCanvas)
+        lg.draw(loadTitle)
+        lg.setColor(61/255, 83/255, 97/255)
+        lg.printf( "Load", fonts.Itim[100], 0, loadTitle:getHeight() * 3 / 5, loadTitle:getWidth(), "center")
+        lg.setColor(1, 1, 1, 1)
     lg.setCanvas()
-    characters.example[2] = lg.newCanvas(_:getWidth(), _:getHeight())
-    lg.setCanvas(characters.example[2])
-        lg.clear()
-        lg.setColor(0, 0, 0)
-        lg.rectangle("fill", 0, 0, _:getWidth(), _:getHeight())
-        lg.setColor(1, 1, 1)
-        lg.draw(_)
-        lg.draw(lg.newImage("/res/images/exampleexpression2.png"), 612, 383)
-    lg.setCanvas()
-    ]]
 
-    
-        --[[
-        lg.draw(bg)
-        lg.setShader(shaders.blue)
-        lg.draw(characters.example[expressionNumber], 0, 0, 0, WINDOW.HEIGHT / characters.example[expressionNumber]:getHeight(), WINDOW.HEIGHT / characters.example[expressionNumber]:getHeight())
-        lg.setShader()
-        --lg.clear()
-        lg.print("It's unusual to see people here/nWhat's up?")
-        ]]
+    animation.menu_loadFile()
+end
+
+function tableContains(table, item)
+    for i, v in ipairs(table) do
+        if v == item then return true end
+    end
+    return false
+end

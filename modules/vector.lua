@@ -2,7 +2,7 @@
 
 local vector = {}
 
-function vector.collision(vertices, mousePos)
+function vector.collision(vertices, mousePos) --http://www.jeffreythompson.org/collision-detection/poly-point.php
     vertices = verticesConverter(vertices)
 
     collision = false
