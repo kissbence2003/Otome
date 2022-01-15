@@ -45,8 +45,6 @@ shaders = {
 
 local _ = scene.new(1)
 
-expressionNumber = 2
-
 function love.load()
     if love.system.getOS() == "Android" or love.system.getOS() == "iOS" then
         love.window.setMode(800, 600, {resizable=false})
@@ -57,8 +55,8 @@ end
 
 function love.update(dt)
     if tableContains(SCREEN_STATE, "love") then
-        loveScreenTimer = loveScreenTimer + dt
-        if loveScreenTimer >= 5 then
+        globals.loveScreenTimer = globals.loveScreenTimer + dt
+        if globals.loveScreenTimer >= 5 then
             loading(menu, "menu")
         end
     end
@@ -93,14 +91,21 @@ function press(x, y)
     if tableContains(SCREEN_STATE, "love") then
         loading(menu, "menu")
     end
-    if expressionNumber == 1 then expressionNumber = 2 else expressionNumber = 1 end
+    
 end
 
 function love.keypressed( key, scancode, isrepeat )
     if key == "space" then
         press(-100, -100)
     end
+    if (love.system.getOS() == "Android" or love.system.getOS() == "iOS") and key == "escape" then
+        if tableContains(SCREEN_STATE, "loadFile") then
+            SCREEN_STATE = {"menu"}
+        end
+    end
 end
+
+--mobiles: escape -> back, home -> home
 
 function love.mousepressed( x, y, button, istouch, presses )
     press(x, y)
@@ -114,7 +119,7 @@ function love.resize( w, h )
     WINDOW.WIDTH, WINDOW.HEIGHT = w, h
     WINDOW.HORIZONTAL_SCALE, WINDOW.VERTICAL_SCALE = w / WINDOW.EXPECTED_WIDTH, h / WINDOW.EXPECTED_HEIGHT
 
-    if tableContains(SCREEN_STATE, "menu") then menuButtons.fontSize = 40 end
+    if tableContains(SCREEN_STATE, "menu") then globals.menuButtons.fontSize = 40 end
 end
 
 function loading(func, after, add)
@@ -130,10 +135,10 @@ function loading(func, after, add)
 end
 
 function lovescreen()
-    fonts = { Itim = {} }
+    globals.fonts = { Itim = {} }
 
     for i = 5, 100, 5 do
-        fonts.Itim[i] = lg.newFont("/res/fonts/Itim-Regular.ttf", i)
+        globals.fonts.Itim[i] = lg.newFont("/res/fonts/Itim-Regular.ttf", i)
     end
 
     love.window.maximize()
@@ -141,78 +146,107 @@ function lovescreen()
     WINDOW.HORIZONTAL_SCALE, WINDOW.VERTICAL_SCALE = WINDOW.WIDTH / WINDOW.EXPECTED_WIDTH, WINDOW.HEIGHT / WINDOW.EXPECTED_HEIGHT
 
     local img = lg.newImage("/res/images/love.png")
-    local text = lg.newText(fonts.Itim[40], "Made with LÖVE")
+    local text = lg.newText(globals.fonts.Itim[40], "Made with LÖVE")
 
-    loveCanvas = lg.newCanvas( text:getWidth() > img:getWidth() and text:getWidth() or img:getWidth(), img:getHeight() + text:getHeight() )
+    globals.loveCanvas = lg.newCanvas( text:getWidth() > img:getWidth() and text:getWidth() or img:getWidth(), img:getHeight() + text:getHeight() )
     
     
-    lg.setCanvas(loveCanvas)
-        lg.draw(img, (loveCanvas:getWidth() / 2) - (img:getWidth() / 2), 0)
-        lg.draw(text, (loveCanvas:getWidth() / 2) - (text:getWidth() / 2), img:getHeight())
+    lg.setCanvas(globals.loveCanvas)
+        lg.draw(img, (globals.loveCanvas:getWidth() / 2) - (img:getWidth() / 2), 0)
+        lg.draw(text, (globals.loveCanvas:getWidth() / 2) - (text:getWidth() / 2), img:getHeight())
     lg.setCanvas()
 
-    loveScreenTimer = 0
+    globals.loveScreenTimer = 0
 end
 
 function menu() 
-    bg = lg.newImage("/res/images/menubgminified.jpg")
+    globals.bg = lg.newImage("/res/images/menubgminified.jpg")
 
-    menuButtons = {
+    globals.colours = {
+        {
+            0xF5 / 255,
+            0XF0 / 255,
+            0xED / 255,
+            1
+        },
+        {
+            0xD4 / 255,
+            0XC6 / 255,
+            0xDD / 255,
+            1
+        },
+        {
+            0xD6 / 255,
+            0XB7 / 255,
+            0xB5 / 255,
+            1
+        },
+        {
+            0x3D / 255,
+            0X53 / 255,
+            0x61 / 255,
+            1
+        },
+    }
+
+    globals.menuButtons = {
         color = {245/255, 240/255, 237/255, 1},
         borderColor = {212/255, 198/255, 189/255, 1},
         icons = lg.newImage("/res/images/optbuttonpics.png"),
         fontSize = 40,
         buttons = {}
     }
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {265, 436, 621, 436, 621, 734, 265, 695},
         "New game",
-        lg.newQuad(0, 0, 136, 146, menuButtons.icons:getDimensions()),
-        function() end
+        lg.newQuad(0, 0, 169, 165, globals.menuButtons.icons:getDimensions()),
+        function()
+            lg.captureScreenshot("/saves/screen.png")
+        end
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {649, 436, 1051, 436, 992, 762, 649, 789},
         "Continue",
-        lg.newQuad(138, 1, 110, 127, menuButtons.icons:getDimensions()),
+        lg.newQuad(170, 1, 110, 127, globals.menuButtons.icons:getDimensions()),
         function() end    
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {1085, 436, 1389, 436, 1341, 734, 1031, 758.5},
         "Load",
-        lg.newQuad(249, 0, 110, 142, menuButtons.icons:getDimensions()),
+        lg.newQuad(281, 0, 110, 142, globals.menuButtons.icons:getDimensions()),
         function()
             loading(loadFile, "loadFile", true)
         end    
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {1419, 436, 1655, 436, 1655, 712, 1376, 734},
         "Quit",
-        lg.newQuad(360, 0, 144, 147, menuButtons.icons:getDimensions()),
+        lg.newQuad(392, 0, 144, 147, globals.menuButtons.icons:getDimensions()),
         function() 
             love.event.quit()
         end    
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {265, 723, 619, 763, 619, 1051, 265, 1051},
         "Settings",
-        lg.newQuad(505, 0, 136, 138, menuButtons.icons:getDimensions()),
+        lg.newQuad(537, 0, 136, 138, globals.menuButtons.icons:getDimensions()),
         function() end    
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {649, 817, 1106, 780, 1175, 1051, 649, 1051},
         "Gallery",
-        lg.newQuad(642, 0, 121, 121, menuButtons.icons:getDimensions()),
+        lg.newQuad(674, 0, 121, 121, globals.menuButtons.icons:getDimensions()),
         function() end    
     ))
-    table.insert(menuButtons.buttons, newMenuButton(
+    table.insert(globals.menuButtons.buttons, newMenuButton(
         {1142, 780, 1655, 733, 1655, 1051, 1210, 1051},
         "Branches",
-        lg.newQuad(764, 0, 277, 121, menuButtons.icons:getDimensions()),
+        lg.newQuad(796, 0, 277, 121, globals.menuButtons.icons:getDimensions()),
         function() end    
     ))
 
-    --check if save files exist, and create them if they don't
-    saveDir = love.filesystem.getSaveDirectory()
+    --[[check if save files exist, and create them if they don't
+    local saveDir = love.filesystem.getSaveDirectory()
     local amountOfSaveFiles = 30
 
     local info = love.filesystem.getInfo(love.filesystem.getSaveDirectory() .. "/saves/")
@@ -228,6 +262,7 @@ function menu()
             love.filesystem.write("/saves/" .. filename, "")
         end
     end
+    --]]
 end
 
 function newMenuButton(v, t, i, f)
@@ -235,12 +270,13 @@ function newMenuButton(v, t, i, f)
 end
 
 function loadFile()
-    loadTitle = lg.newImage("/res/images/ovalis.png")
-    loadCanvas = lg.newCanvas(loadTitle:getWidth(), loadTitle:getHeight())
-    lg.setCanvas(loadCanvas)
-        lg.draw(loadTitle)
+    globals.loadTitle = lg.newImage("/res/images/ovalis.png")
+    globals.arrow = lg.newImage("/res/images/arrow.png")
+    globals.loadCanvas = lg.newCanvas(globals.loadTitle:getWidth(), globals.loadTitle:getHeight())
+    lg.setCanvas(globals.loadCanvas)
+        lg.draw(globals.loadTitle)
         lg.setColor(61/255, 83/255, 97/255)
-        lg.printf( "Load", fonts.Itim[100], 0, loadTitle:getHeight() * 3 / 5, loadTitle:getWidth(), "center")
+        lg.printf( "Load", globals.fonts.Itim[100], 0, globals.loadTitle:getHeight() * 3 / 5, globals.loadTitle:getWidth(), "center")
         lg.setColor(1, 1, 1, 1)
     lg.setCanvas()
 
@@ -253,3 +289,19 @@ function tableContains(table, item)
     end
     return false
 end
+
+function clearGlobals()
+    local exceptions = {"fonts", "bg", "colours"}
+    for k, v in pairs(globals) do
+        local bool = false
+        for _, exception in ipairs(exceptions) do
+            if not bool then
+                bool = k == exception
+            end
+        end
+        if not bool then
+            globals[k] = nil
+        end
+    end
+end
+

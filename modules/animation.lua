@@ -14,10 +14,11 @@ function animation.init(...)
 end
 
 function animation.finish()
-    local _ = SCREEN_STATE[2]
     animation.isRunning = false
     animation.timer = 0
     animation.timeLimit = 0
+    if not SCREEN_STATE[2] then return end
+    local _ = SCREEN_STATE[2]
     SCREEN_STATE = {_}
 end
 
@@ -31,7 +32,7 @@ function animation.update(dt, animId)
 end
 
 function animation.menu_loadFile()
-    animation.init(1, true, 0.2)
+    animation.init(1, true, 0.8)
 end
 
 return animation
